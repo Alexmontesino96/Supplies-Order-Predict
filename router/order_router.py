@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter
 from fastapi.security import HTTPBearer
 from fastapi import Depends, Security
@@ -17,7 +18,11 @@ def search_order_by_id(order_id: int, user: Auth0User = Security(auth.get_user))
     return Order_Service(Session).search_order_by_id(order_id)
 
 @order_app.post("/orders/import_order", dependencies= [Depends(auth.implicit_scheme)], tags=["Order"])
-def import_order(csv_file : UploadFile = File (...),user: Auth0User = Security(auth.get_user)):
+def import_order(date: str, csv_file : UploadFile = File (...),user: Auth0User = Security(auth.get_user)):
+
+    date = datetime.strptime("04/23/2021", "%m/%d/%Y")
+    if not date:
+        return JSONResponse(content={"message": "Invalid date format"}, status_code=400)
 
     status, content = Order_Service(Session).process_order_csv(user_id= user.id,csv_file= csv_file)
     if status == 500:

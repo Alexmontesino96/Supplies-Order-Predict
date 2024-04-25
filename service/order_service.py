@@ -11,6 +11,7 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from model.order_item_model import OrderItemModel
 from model.product_model import Product as ProductModel
+import re
 
 class Order_Service():
     def __init__(self, db_session):
@@ -93,27 +94,41 @@ class Order_Service():
         content = StringIO(csv_file.file.read().decode('utf-8'))
         reader = csv.DictReader(content)
 
-        try:
-            with Session() as db:
-                for row in reader:
+        with Session() as db:
+            for row in reader:
+                if 'Quantity' in row:
                     quantity = int(row['Quantity'])
+                else:
+                    quantity = row["QTY"]
+                
+                if 'Price' in row:
+                    price = float(re.sub(r'[^\d.]', '', row['Price']))
+                else:
+                    price = row["Price per Case"]
+                if 'Distribution #' in row:
+                    product_id = str(row['Distribution #'])
+                else:
+                    product_id = row["Customer #"]
+                if 'Subtotal' in row:
                     subtotal = float(row['Subtotal'])
-                    price = float(row['Price'])
+                else:
+                    subtotal = price * quantity
 
+                try:
                     order_item = Order_Items_Schema(
                         order_id=order.id,
-                        product_id=str(row['Distribution #']),
+                        product_id=product_id,
                         quantity=quantity,
                         price_per_unit=price,
                         total=subtotal
                     )
-                    order_item_model = OrderItemModel(**order_item.model_dump())
-                    db.add(order_item_model)
+                except ValueError as e:
+                    print(f"An error occurred while processing order items: {e}")
+                    continue
+                order_item_model = OrderItemModel(**order_item.model_dump())
+                db.add(order_item_model)
                 db.commit()
-                return (201, order.id)
-        except Exception as e:
-            print(f"An error occurred while processing order items: {e}")
-            return (500, e)
+            return (201, order.id)
         
     def create_order(self,user_id: int):
         try:
