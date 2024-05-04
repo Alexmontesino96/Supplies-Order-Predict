@@ -150,3 +150,10 @@ class Order_Service():
         except Exception as e:
             print(f"An error occurred while creating order: {e}")
             return None
+        
+    def get_all_order(self):
+        with self.db_session() as db:
+            orders = db.query(OrderModel).all()
+            if orders is None:
+                return JSONResponse(content={"message": "Not order in database"}, status_code=404)
+            return JSONResponse(content=[order.id for order in orders], status_code=200)

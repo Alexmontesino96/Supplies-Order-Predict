@@ -17,6 +17,10 @@ token_auth_schema = HTTPBearer()
 def search_order_by_id(order_id: int, user: Auth0User = Security(auth.get_user)):
     return Order_Service(Session).search_order_by_id(order_id)
 
+@order_app.get("/orders/get-all-order", dependencies= [Depends(auth.implicit_scheme)], tags=["Order"])
+def get_all_order(user: Auth0User = Security(auth.get_user)):
+    return Order_Service(Session).get_all_order()
+
 @order_app.post("/orders/import_order", dependencies= [Depends(auth.implicit_scheme)], tags=["Order"])
 def import_order(date: str, csv_file : UploadFile = File (...),user: Auth0User = Security(auth.get_user)):
 
@@ -25,6 +29,7 @@ def import_order(date: str, csv_file : UploadFile = File (...),user: Auth0User =
         return JSONResponse(content={"message": "Invalid date format"}, status_code=400)
 
     status, content = Order_Service(Session).process_order_csv(user_id= user.id,csv_file= csv_file)
+
     if status == 500:
         return {"message": "An error occurred while processing order items"}
     else:
