@@ -85,17 +85,19 @@ class Product_Out_Schema(Product_In_Schema):
 
         with Session() as db:
             orders = db.query(OrderModel).filter(OrderModel.date >= datetime.now() - timedelta(days=30)).all()
+            print(orders)
             if len(orders) > 5:
 
                 for order in orders: 
-                    for product in order.products:
+                    for product in order.order_items:
 
-                        if product.id == self.id:
+                        if product.product_id == self.id:
                             product_in_orders.append(product.quantity)
                             count += 1
                             if count == 0:
                                 return average 
-                average = sum(product_in_orders) / count
+                if count > 0:
+                    average = sum(product_in_orders) / count
             
             elif len(orders) == 0:
                 return None

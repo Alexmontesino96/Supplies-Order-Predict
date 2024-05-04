@@ -82,6 +82,13 @@ class Order_Service():
                 list_product_related.append(product_realted_with_order)
 
             return list_product_related
+        
+    def search_product_in_all_orders(self, product_id: int):
+        with self.db_session() as db:
+            orders = db.query(OrderItemModel).filter(OrderItemModel.product_id == product_id).all()
+            if orders is None:
+                return JSONResponse(content={"message": "Product not found in any order"}, status_code=404)
+            return JSONResponse(content=[order.order_id for order in orders], status_code=200)
 
     def process_order_csv(self, user_id: int, csv_file: UploadFile = File(...)):
         if not csv_file.filename.endswith('.csv'):
