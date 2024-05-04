@@ -18,6 +18,19 @@ from fastapi import status
 product_app = APIRouter()
 token_auth_schema = HTTPBearer()
 
+@product_app.get("/products", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
+def get_all_products(user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> list[Product_Out_Schema]:
+    """
+    Get all products.
+
+    Parameters:
+    - user: Auth0User object representing the authenticated user.
+
+    Returns:
+    - list[Product_Out_Schema]: A list of product objects.
+    """
+    products = ProductServiceCSV(Session).get_products()
+    return jsonable_encoder(products)
 
 @product_app.post("/products", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
 def import_product_month_csv(product_month_csv: UploadFile = File, user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> list[Product_In_Schema]:

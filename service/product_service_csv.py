@@ -21,6 +21,11 @@ class ProductServiceCSV:
     def __init__(self, db_session):
         self.db_session = db_session
 
+    def get_products(self) -> List[Product_Out_Schema]:
+        with self.db_session() as db:
+            products = db.query(ProductModel).all()
+            product_schema = [Product_Out_Schema(**product.__dict__) for product in products]
+            return product_schema
 
     def import_list_month_product(self, file: UploadFile) -> List[Product]:
         content = BytesIO(file.file.read())
