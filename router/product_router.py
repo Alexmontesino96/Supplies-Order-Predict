@@ -18,7 +18,7 @@ from fastapi import status
 product_app = APIRouter()
 token_auth_schema = HTTPBearer()
 
-@product_app.get("/products", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
+@product_app.get("/products/get_all", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
 def get_all_products(user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> list[Product_Out_Schema]:
     """
     Get all products.
