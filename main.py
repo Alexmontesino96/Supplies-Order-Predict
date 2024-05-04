@@ -8,8 +8,10 @@ from router.order_router import order_app
 from model.order_item_model import OrderItemModel
 from db.db import Session
 import os
+from midleware.error_handler import ErrorHandlerMiddleware
 
 app = FastAPI()
+app.add_middleware(ErrorHandlerMiddleware)
 
 Base.metadata.create_all(bind=engine)
 
