@@ -19,7 +19,7 @@ product_app = APIRouter()
 token_auth_schema = HTTPBearer()
 
 @product_app.get("/products/get_all", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
-def get_all_products(user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> list[Product_Out_Schema]:
+def get_all_products(user: Auth0User = Security(auth.get_user, scopes=["read:product"])):
     """
     Get all products.
 
@@ -66,18 +66,6 @@ def search_products_by_id(id: str, user: Auth0User = Security(auth.get_user, sco
         return JSONResponse(content={"message": "Product not found"}, status_code=404)
     return jsonable_encoder(product)
 
-@product_app.put("/products/update_price", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
-def update_price(user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> JSONResponse:
-    """
-    Update the price of a product.
-
-    Parameters:
-    - user: Auth0User object representing the authenticated user.
-
-    Returns:
-    - The result of the ProductServiceCSV's update_price() method.
-    """
-    return ProductServiceCSV(Session).update_price()
 
 @product_app.delete("/products/delete_product{id}", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
 def delete_product(id: str, user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> JSONResponse:
