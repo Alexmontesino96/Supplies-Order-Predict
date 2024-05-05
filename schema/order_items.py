@@ -16,20 +16,3 @@ class Order_Items_Schema_db(BaseModel):
     price_per_unit: float
     total: float
 
-    @validator("order_id")
-    def validate_order_id(cls, value):
-        if value > 0:
-            return value
-        raise ValueError("Order ID must be greater than 0")
-
-    @validator("product_id")
-    def validate_product_id(cls, value):
-        if len(value) > 0:
-            return value
-        raise ValueError("Product ID must be greater than 0")
-
-    @validator("quantity")
-    def validate_quantity(cls, value):
-        if value > 0:
-            return value
-        raise ValueError("Quantity must be greater than 0")

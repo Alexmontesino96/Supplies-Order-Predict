@@ -77,15 +77,28 @@ class Order_Service():
                 return JSONResponse(content={"message": "Order not found"}, status_code=404)
             
             order_items = db.query(OrderItemModel).filter(OrderItemModel.order_id == order_id).all()
-            
+            if not order_items:
+                return JSONResponse(content={"message": "Order items not found"}, status_code=404)
             for order in order_items:
-                product_db_out = Order_Items_Schema_db()
-                product_db_out.order_id = order.order_id
-                product_db_out.product_id = order.product
-                product_db_out.quantity = order.quantity
-                product_db_out.price_per_unit = order.price_per_unit
-                product_db_out.total = order.total
-                list_product_related.append(product_db_out)
+                if order.product is None:
+                    print(f"No product found for order item: {order.order_id}")
+                    continue
+                print(order.product.name)
+                order_items_schema = Order_Items_Schema_db(
+                    order_id = order.order_id,
+                    product_id = Product_Out_Schema(
+                        id = str(order.product_id),
+                        name = order.product.name,
+                        pack = order.product.pack,
+                        uom = order.product.uom,
+                        comments = order.product.comments,
+                        price = order.product.price,
+                        department_name = order.product.department_name),
+                    quantity = order.quantity,
+                    price_per_unit = order.price_per_unit,
+                    total = order.total
+                )
+                list_product_related.append(order_items_schema)
 
             return list_product_related
         
@@ -161,5 +174,5 @@ class Order_Service():
         with self.db_session() as db:
             orders = db.query(OrderModel).all()
             if orders is None:
-                return JSONResponse(content={"message": "Not order in database"}, status_code=404)
+                return JSONResponse(content={"message": "Order not found"}, status_code=404)
             return JSONResponse(content=[order.id for order in orders], status_code=200)

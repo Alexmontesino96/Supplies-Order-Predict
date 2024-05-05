@@ -75,7 +75,7 @@ class Product_Out_Schema(Product_In_Schema):
         }
     }
 
-    @computed_field
+    """@computed_field
     @property
     def week_average_last_30_days(self)-> Union[float, None]:
 
@@ -102,7 +102,7 @@ class Product_Out_Schema(Product_In_Schema):
             elif len(orders) == 0:
                 return None
 
-            return average
+            return average"""
             
 
     @classmethod
