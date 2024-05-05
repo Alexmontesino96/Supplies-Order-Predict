@@ -76,6 +76,8 @@ class ProductServiceCSV:
         with self.db_session() as db:
             products = db.query(ProductModel).filter(ProductModel.id == id).first()
             product_schema = Product_Out_Schema(**products.__dict__)
+            if not product_schema:
+                return JSONResponse(content={"message": "Product not found"}, status_code=404)
             return product_schema
         
     def delete_product(self, id: str) -> bool:
