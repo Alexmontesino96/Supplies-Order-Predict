@@ -53,18 +53,19 @@ def import_product_month_csv(product_month_csv: UploadFile = File, user: Auth0Us
 @product_app.get("/products/search_product{id}", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
 def search_products_by_id(id: str, user: Auth0User = Security(auth.get_user))-> Product_Out_Schema:
     """
-    Get all products.
+    Search for a product by ID.
 
     Parameters:
-    - user: Auth0User object representing the authenticated user.
+    - id (str): The ID of the product to search for.
+    - user (Auth0User): The authenticated user making the request.
 
     Returns:
-    - class Product: The product object.
+    - Product_Out_Schema: The product object with the specified ID.
     """
     product = ProductServiceCSV(Session).get_products_by_id(id)
     if not product:
         return JSONResponse(content={"message": "Product not found"}, status_code=404)
-    return jsonable_encoder(product)
+    return JSONResponse(content=jsonable_encoder(product), status_code=200)
 
 
 @product_app.delete("/products/delete_product{id}", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
