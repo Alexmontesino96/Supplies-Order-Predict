@@ -12,6 +12,7 @@ from fastapi.responses import JSONResponse
 from model.order_item_model import OrderItemModel
 from model.product_model import Product as ProductModel
 import re
+from schema.order_items import Order_Items_Schema_db
 
 class Order_Service():
     def __init__(self, db_session):
@@ -78,8 +79,13 @@ class Order_Service():
             order_items = db.query(OrderItemModel).filter(OrderItemModel.order_id == order_id).all()
             
             for order in order_items:
-                product_realted_with_order = order
-                list_product_related.append(product_realted_with_order)
+                product_db_out = Order_Items_Schema_db()
+                product_db_out.order_id = order.order_id
+                product_db_out.product_id = order.product
+                product_db_out.quantity = order.quantity
+                product_db_out.price_per_unit = order.price_per_unit
+                product_db_out.total = order.total
+                list_product_related.append(product_db_out)
 
             return list_product_related
         
