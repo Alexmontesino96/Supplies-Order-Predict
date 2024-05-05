@@ -175,4 +175,4 @@ class Order_Service():
             orders = db.query(OrderModel).all()
             if orders is None:
                 return JSONResponse(content={"message": "Order not found"}, status_code=404)
-            return JSONResponse(content=[order.id for order in orders], status_code=200)
+            return JSONResponse(content=[order for order in orders], status_code=200)
