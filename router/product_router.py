@@ -19,7 +19,7 @@ product_app = APIRouter()
 token_auth_schema = HTTPBearer()
 
 @product_app.get("/products/get_all", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
-def get_all_products(user: Auth0User = Security(auth.get_user, scopes=["read:product"])):
+def get_all_products(user: Auth0User = Security(auth.get_user)):
     """
     Get all products.
 
@@ -33,7 +33,7 @@ def get_all_products(user: Auth0User = Security(auth.get_user, scopes=["read:pro
     return jsonable_encoder(products)
 
 @product_app.post("/products", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
-def import_product_month_csv(product_month_csv: UploadFile = File, user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> list[Product_In_Schema]:
+def import_product_month_csv(product_month_csv: UploadFile = File, user: Auth0User = Security(auth.get_user))-> list[Product_In_Schema]:
     """
     Endpoint for importing a CSV file containing product data for a specific month.
 
@@ -51,7 +51,7 @@ def import_product_month_csv(product_month_csv: UploadFile = File, user: Auth0Us
     return jsonable_encoder(product_dict)
 
 @product_app.get("/products/search_product{id}", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
-def search_products_by_id(id: str, user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> Product_Out_Schema:
+def search_products_by_id(id: str, user: Auth0User = Security(auth.get_user))-> Product_Out_Schema:
     """
     Get all products.
 
@@ -68,7 +68,7 @@ def search_products_by_id(id: str, user: Auth0User = Security(auth.get_user, sco
 
 
 @product_app.delete("/products/delete_product{id}", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
-def delete_product(id: str, user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> JSONResponse:
+def delete_product(id: str, user: Auth0User = Security(auth.get_user))-> JSONResponse:
     """
     Delete a product.
 
@@ -81,7 +81,7 @@ def delete_product(id: str, user: Auth0User = Security(auth.get_user, scopes=["r
     return ProductServiceCSV(Session).delete_product(id)
 
 @product_app.put("/products/update_product{id}", tags=["Product"], dependencies=[Depends(auth.implicit_scheme)])
-def update_product(id: str, product: Product_In_Schema, user: Auth0User = Security(auth.get_user, scopes=["read:product"]))-> JSONResponse:
+def update_product(id: str, product: Product_In_Schema, user: Auth0User = Security(auth.get_user))-> JSONResponse:
     """
     Update a product.
 
