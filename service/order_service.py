@@ -78,7 +78,7 @@ class Order_Service():
             order_items = db.query(OrderItemModel).filter(OrderItemModel.order_id == order_id).all()
             
             for order in order_items:
-                product_realted_with_order = order.product
+                product_realted_with_order = order
                 list_product_related.append(product_realted_with_order)
 
             return list_product_related
