@@ -11,7 +11,7 @@ class Order_Items_Schema(BaseModel):
 
 class Order_Items_Schema_db(BaseModel):
     order_id: int
-    product_id: Product_Out_Schema  
+    product: Product_Out_Schema  
     quantity: int
     price_per_unit: float
     total: float

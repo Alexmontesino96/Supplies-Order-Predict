@@ -28,7 +28,7 @@ def import_order(date: str, csv_file : UploadFile = File (...),user: Auth0User =
     if not date:
         return JSONResponse(content={"message": "Invalid date format"}, status_code=400)
 
-    status, content = Order_Service(Session).process_order_csv(user_id= user.id,csv_file= csv_file)
+    status, content = Order_Service(Session).process_order_csv(user.email, csv_file)
 
     if status == 500:
         return {"message": "An error occurred while processing order items"}

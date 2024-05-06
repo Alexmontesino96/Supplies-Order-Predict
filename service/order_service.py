@@ -11,9 +11,12 @@ from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from model.order_item_model import OrderItemModel
+from schema.order_items import Order_Items_Schema_db
 from model.product_model import Product as ProductModel
 import re
-from schema.order_items import Order_Items_Schema_db
+from sqlalchemy.orm import joinedload
+from schema.order import Order_Schema_Out
+from fastapi.encoders import jsonable_encoder
 
 class Order_Service():
     def __init__(self, db_session):
@@ -36,6 +39,7 @@ class Order_Service():
             db.add(order_item)
             db.commit()
             return JSONResponse(content={"message": "Product added to order successfully"}, status_code=201)
+        
     def delete_items_from_order(self, product_id: int, order_id: int):
         with self.db_session() as db:
         
@@ -70,38 +74,30 @@ class Order_Service():
 
     def search_order_by_id(self, order_id: int):
         with self.db_session() as db:
+            
+            order = db.query(OrderModel).filter(OrderModel.id == order_id).options(joinedload(OrderModel.order_items).joinedload(OrderItemModel.product)).first()
+            order_items_db = order.order_items
 
-            list_product_related = []
-            order = db.query(OrderModel).filter(OrderModel.id == order_id).first()
+            """order_out = Order_Schema_Out(
+                order=Order_Schema(
+                    id=order.id,
+                    date=order.date,
+                    user_id=order.user_id,
+                    status=order.status
+
+                )
+
+            )"""
 
             if order is None:
                 return JSONResponse(content={"message": "Order not found"}, status_code=404)
-            
-            order_items = db.query(OrderItemModel).filter(OrderItemModel.order_id == order_id).all()
-            if not order_items:
-                return JSONResponse(content={"message": "Order items not found"}, status_code=404)
-            for order in order_items:
-                if order.product is None:
-                    print(f"No product found for order item: {order.order_id}")
-                    continue
-                print(order.product.name)
-                order_items_schema = Order_Items_Schema_db(
-                    order_id = order.order_id,
-                    product_id = Product_Out_Schema(
-                        id = str(order.product_id),
-                        name = order.product.name,
-                        pack = order.product.pack,
-                        uom = order.product.uom,
-                        comments = order.product.comments,
-                        price = order.product.price,
-                        department_name = order.product.department_name),
-                    quantity = order.quantity,
-                    price_per_unit = order.price_per_unit,
-                    total = order.total
-                )
-                list_product_related.append(order_items_schema)
 
-            return list_product_related
+            if not order.order_items:
+                return JSONResponse(content={"message": "Order items not found"}, status_code=404)   
+            order_dict = jsonable_encoder(order)
+
+    
+            return order
         
     def search_product_in_all_orders(self, product_id: int):
         with self.db_session() as db:
@@ -110,11 +106,11 @@ class Order_Service():
                 return JSONResponse(content={"message": "Product not found in any order"}, status_code=404)
             return JSONResponse(content=[order.order_id for order in orders], status_code=200)
 
-    def process_order_csv(self, user_id: int, csv_file: UploadFile = File(...)):
+    def process_order_csv(self, user_email: int, csv_file: UploadFile = File(...)):
         if not csv_file.filename.endswith('.csv'):
             raise HTTPException(status_code=400, detail="Invalid file type, only CSV files are accepted.")
 
-        order = self.create_order(user_id)
+        order = self.create_order(user_email)
         if order is None:
             raise HTTPException(status_code=500, detail="Failed to create order.")
 
@@ -157,10 +153,10 @@ class Order_Service():
                 db.commit()
             return (201, order.id)
         
-    def create_order(self,user_id: int):
+    def create_order(self,user_email: int):
         try:
             with self.db_session() as db:
-                new_order = Order_Schema(date=datetime.now(), user_id=user_id)
+                new_order = Order_Schema(date=datetime.now(), user_id = user_email)
                 new_order_model = OrderModel(**new_order.model_dump())
                 db.add(new_order_model)
                 db.commit()

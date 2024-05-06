@@ -14,4 +14,4 @@ class OrderItemModel(Base):
 
     # Relaciones para acceder a la orden y al producto desde OrderItem
     order = relationship('OrderModel', back_populates='order_items')
-    product = relationship('Product', back_populates='order_items')
+    product = relationship('Product', back_populates='order_items', lazy='joined')
