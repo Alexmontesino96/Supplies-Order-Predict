@@ -16,3 +16,13 @@ class Order_Items_Schema_db(BaseModel):
     price_per_unit: float
     total: float
 
+    @classmethod
+    def serialize_order_item_db(cls, order_item):
+        return cls(
+            order_id=order_item.order_id,
+            product=Product_Out_Schema.serialize_product_db(order_item.product),
+            quantity=order_item.quantity,
+            price_per_unit=order_item.price_per_unit,
+            total=order_item.total
+        )
+

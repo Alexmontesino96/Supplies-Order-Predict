@@ -1,5 +1,4 @@
 from pydantic import BaseModel, Field, validator
-from schema.product import Product_Out_Schema
 import csv
 from pydantic import computed_field
 from typing import Optional
@@ -27,16 +26,6 @@ class Order_Schema(BaseModel):
     date: datetime
     user_id: str
     status: Status_Order = Field(default=Status_Order.IN_PROGRESS)
-    total: float = Field(default=0.0, computed_field=True)
-
-class Order_Schema_Out(BaseModel):
-    order: Order_Schema
-    order_items: list[Order_Items_Schema_db]
-    total: Optional[float] = Field(default=0.0)
-
-    model_config = {
-        'from_attributes': True
-    }
 
 class Order_Schema_Total(BaseModel):
     id : int = Field(None, alias='id')
@@ -47,33 +36,22 @@ class Order_Schema_Total(BaseModel):
     total_items: int = Field(default=0, computed_field=True)
 
     @property
-    def calculate_total(self) -> float:
+    def calculate_total_and_total_items(self) -> float:
         """
         Calcula el total sumando los totales de cada ítem asociado a la orden.
         """
         with Session() as db:
             order_items = db.query(OrderItemModel).filter(OrderItemModel.order_id == self.id).all()
             total = sum(item.total for item in order_items)
-        return total
-    
-    @property
-    def calculate_total_items(self) -> int:
-        """
-        Calcula el total de ítems asociados a la orden.
-        """
-        with Session() as db:
-            order_items = db.query(OrderItemModel).filter(OrderItemModel.order_id == self.id).all()
             total_items = len(order_items)
-        return total_items
+        return total, total_items
 
     def __init__(self, **kwargs):
         """
         Calcula el total cuando se crea la instancia.
         """
         super().__init__(**kwargs)
-        # Asigna el valor calculado al atributo `total`
-        self.total = self.calculate_total
-        self.total_items = self.calculate_total_items
+        self.total, self.total_items = self.calculate_total_and_total_items
 
     @staticmethod
     def serialize_order_db(order: OrderModel):
@@ -85,3 +63,10 @@ class Order_Schema_Total(BaseModel):
         )
         return order_with_total
 
+class Order_Schema_Out(BaseModel):
+    order: Order_Schema_Total
+    order_items: list[Order_Items_Schema_db]
+
+    model_config = {
+        'from_attributes': True
+    }

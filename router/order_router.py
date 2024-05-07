@@ -6,7 +6,7 @@ from application.auth import auth
 from fastapi_auth0 import Auth0User
 from service.order_service import Order_Service
 from fastapi import UploadFile, File
-from db.db import Session
+from db.db import session_scope as Session
 from fastapi.responses import JSONResponse
 
 

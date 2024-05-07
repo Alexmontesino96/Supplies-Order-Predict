@@ -1,6 +1,6 @@
 from fastapi.routing import APIRouter
 from fastapi import Depends, Security
-from db.db import Session
+from db.db import session_scope as Session
 from model.product_model import Product as Product_Model
 from schema.product import Product_In_Schema, Product_Out_Schema
 from fastapi.security import HTTPBearer

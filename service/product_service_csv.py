@@ -3,7 +3,7 @@ from typing import List
 from fastapi import UploadFile, File
 from model.product_model import Product
 from schema.product import Product_In_Schema, Product_Out_Schema
-from db.db import Session
+from db.db import session_scope
 from io import BytesIO
 import pandas as pd
 from model.product_model import Product as ProductModel

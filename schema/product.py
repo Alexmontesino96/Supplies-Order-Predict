@@ -75,6 +75,22 @@ class Product_Out_Schema(Product_In_Schema):
         }
     }
 
+    @classmethod
+    def serialize_product_db(cls, product):
+        return cls(
+            id=product.id,
+            name=product.name,
+            pack=product.pack,
+            uom=product.uom,
+            comments=product.comments,
+            price=product.price,
+            department_name=product.department_name,
+            active=product.active,
+            date_active=product.date_active,
+            date_deactive=product.date_deactive,
+            priority=product.priority
+        )
+
     """@computed_field
     @property
     def week_average_last_30_days(self)-> Union[float, None]:

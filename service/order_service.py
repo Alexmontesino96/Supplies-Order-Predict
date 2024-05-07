@@ -74,30 +74,21 @@ class Order_Service():
 
     def search_order_by_id(self, order_id: int):
         with self.db_session() as db:
-            
             order = db.query(OrderModel).filter(OrderModel.id == order_id).options(joinedload(OrderModel.order_items).joinedload(OrderItemModel.product)).first()
-            order_items_db = order.order_items
-
-            """order_out = Order_Schema_Out(
-                order=Order_Schema(
-                    id=order.id,
-                    date=order.date,
-                    user_id=order.user_id,
-                    status=order.status
-
-                )
-
-            )"""
-
-            if order is None:
+            if not order:
                 return JSONResponse(content={"message": "Order not found"}, status_code=404)
 
-            if not order.order_items:
-                return JSONResponse(content={"message": "Order items not found"}, status_code=404)   
-            order_dict = jsonable_encoder(order)
+            # Manejo de items con producto no disponible
+            order_items = [item for item in order.order_items if item.product is not None]
+            if not order_items:
+                return JSONResponse(content={"message": "No valid order items found"}, status_code=404)
 
-    
-            return order
+            new_order_schema_out = Order_Schema_Out(
+                order=Order_Schema_Total.serialize_order_db(order),
+                order_items=[Order_Items_Schema_db.serialize_order_item_db(item) for item in order_items]
+            )
+        
+            return new_order_schema_out
         
     def search_product_in_all_orders(self, product_id: int):
         with self.db_session() as db:
