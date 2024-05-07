@@ -15,7 +15,7 @@ from schema.order_items import Order_Items_Schema_db
 from model.product_model import Product as ProductModel
 import re
 from sqlalchemy.orm import joinedload
-from schema.order import Order_Schema_Out
+from schema.order import Order_Schema_Out, Order_Schema_Total
 from fastapi.encoders import jsonable_encoder
 
 class Order_Service():
@@ -169,7 +169,14 @@ class Order_Service():
         
     def get_all_order(self):
         with self.db_session() as db:
+            list_orders = []
             orders = db.query(OrderModel).all()
-            if orders is None:
+
+            if not orders:
                 return JSONResponse(content={"message": "Order not found"}, status_code=404)
-            return JSONResponse(content=jsonable_encoder(orders), status_code=200)
+
+            for order in orders:
+                order_individual = Order_Schema_Total.serialize_order_db(order)
+                list_orders.append(order_individual)
+
+            return JSONResponse(content=jsonable_encoder(list_orders), status_code=200)
