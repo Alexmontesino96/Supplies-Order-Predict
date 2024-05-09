@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, validator
 import csv
 from pydantic import computed_field
-from typing import Optional
+from typing import Optional, Tuple
 from datetime import datetime
 from enum import Enum
 from dotenv import load_dotenv
@@ -11,24 +11,18 @@ from schema.order_items import Order_Items_Schema_db
 from db.db import Session
 from model.order_item_model import OrderItemModel
 from model.order_model import OrderModel
-
-load_dotenv()
-STATUS = json.loads(os.getenv('STATUS'))
-
-class Status_Order(Enum):
-    PENDING = STATUS[0]
-    IN_PROGRESS = STATUS[1]
-    COMPLETED = STATUS[2]
+from schema.status_order import Status_Order
 
 
 class Order_Schema(BaseModel):
-    id : int = Field(None, alias='id')
+    id: int = Field(None, alias='id')
     date: datetime
     user_id: str
     status: Status_Order = Field(default=Status_Order.IN_PROGRESS)
 
+
 class Order_Schema_Total(BaseModel):
-    id : int = Field(None, alias='id')
+    id: int = Field(None, alias='id')
     date: datetime
     user_id: str
     status: Status_Order = Field(default=Status_Order.IN_PROGRESS)
@@ -36,7 +30,7 @@ class Order_Schema_Total(BaseModel):
     total_items: int = Field(default=0, computed_field=True)
 
     @property
-    def calculate_total_and_total_items(self) -> float:
+    def calculate_total_and_total_items(self) -> tuple[int, int]:
         """
         Calcula el total sumando los totales de cada ítem asociado a la orden.
         """
@@ -55,13 +49,13 @@ class Order_Schema_Total(BaseModel):
 
     @staticmethod
     def serialize_order_db(order: OrderModel):
-            
         order_with_total = Order_Schema_Total(
             id=order.id,
             date=order.date,
             user_id=order.user_id,
         )
         return order_with_total
+
 
 class Order_Schema_Out(BaseModel):
     order: Order_Schema_Total

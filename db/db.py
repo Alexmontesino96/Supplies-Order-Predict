@@ -17,7 +17,6 @@ Base = declarative_base()
 
 @contextmanager
 def session_scope():
-    """Proporciona un gestor de contexto transaccional para la sesión."""
     session = Session()
     try:
         yield session

@@ -11,7 +11,7 @@ import os
 from midleware.error_handler import ErrorHandlerMiddleware
 
 app = FastAPI()
-"app.add_middleware(ErrorHandlerMiddleware)"
+app.add_middleware(ErrorHandlerMiddleware)
 
 Base.metadata.create_all(bind=engine)
 

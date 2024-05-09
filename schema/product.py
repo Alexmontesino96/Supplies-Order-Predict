@@ -13,25 +13,24 @@ from typing import Optional
 from enum import Enum
 from typing import Union
 
-
-
-
 load_dotenv()
 DEPARTMENT = json.loads(os.getenv('DEPARTMENT'))
 PRIORITY = json.loads(os.getenv('PRIORITY'))
+
 
 class Priority_Level(Enum):
     LOW = PRIORITY[0]
     MEDIUM = PRIORITY[1]
     HIGH = PRIORITY[2]
 
+
 class Product_In_Schema(BaseModel):
-    id : str
+    id: str
     name: str
     pack: str
     uom: str
     comments: str = Field(default=None)
-    price: float = Field(default = 0.0)
+    price: float = Field(default=0.0)
     department_name: str = Field(default=None)
 
     model_config = {
@@ -43,12 +42,11 @@ class Product_In_Schema(BaseModel):
                 'uom': 'CS',
                 'comments': 'This is a product',
                 'price': 10.0,
-                'department_name': ["FRONT-END","DELI","CMS","MEAT","SEAFOOD","BAKERY","PRODUCE","GROCERY","DAIRY","FROZEN","BEER-WINE","PHARMACY","FLORAL"]
+                'department_name': ["FRONT-END", "DELI", "CMS", "MEAT", "SEAFOOD", "BAKERY", "PRODUCE", "GROCERY",
+                                    "DAIRY", "FROZEN", "BEER-WINE", "PHARMACY", "FLORAL"]
             }
         }
     }
-
-
 
 
 class Product_Out_Schema(Product_In_Schema):
@@ -66,7 +64,8 @@ class Product_Out_Schema(Product_In_Schema):
                 'uom': 'CS',
                 'comments': 'This is a product',
                 'price': 10.0,
-                'department_name': ["FRONT-END","DELI","CMS","MEAT","SEAFOOD","BAKERY","PRODUCE","GROCERY","DAIRY","FROZEN","BEER-WINE","PHARMACY","FLORAL"],
+                'department_name': ["FRONT-END", "DELI", "CMS", "MEAT", "SEAFOOD", "BAKERY", "PRODUCE", "GROCERY",
+                                    "DAIRY", "FROZEN", "BEER-WINE", "PHARMACY", "FLORAL"],
                 'active': True,
                 'date_active': '2021-07-01T00:00:00',
                 'date_deactive': None,
@@ -119,7 +118,6 @@ class Product_Out_Schema(Product_In_Schema):
                 return None
 
             return average"""
-            
 
     @classmethod
     def deactivate(self):
@@ -131,8 +129,6 @@ class Product_Out_Schema(Product_In_Schema):
         self.active = True
         self.date_active = datetime.now()
         self.date_deactive = None
-    
-
 
     @validator('department_name', pre=True)
     def validate_department(cls, value):
@@ -147,4 +143,3 @@ class Product_Out_Schema(Product_In_Schema):
                 return department_name
             else:
                 raise ValueError("Department not found")
-    
