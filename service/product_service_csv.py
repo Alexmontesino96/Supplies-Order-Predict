@@ -72,13 +72,12 @@ class ProductServiceCSV:
             db.commit()
             return JSONResponse(content={"message": "Price updated successfully"}, status_code=200)
 
-    def get_products_by_id(self, product_id: str) -> JSONResponse | Product_Out_Schema:
+    def get_products_by_id(self, product_id: str) -> JSONResponse | ProductModel:
         with self.db_session() as db:
             products = db.query(ProductModel).filter(ProductModel.id == product_id).first()
-            product_schema = Product_Out_Schema(**products.__dict__)
-            if not product_schema:
+            if not products:
                 return JSONResponse(content={"message": "Product not found"}, status_code=404)
-            return product_schema
+            return products
 
     def delete_product(self, product_id: str) -> JSONResponse:
         with self.db_session() as db:

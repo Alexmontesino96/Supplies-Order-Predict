@@ -1,15 +1,12 @@
 import csv
-from schema.product import Product_Out_Schema, Product_In_Schema
 from schema.order import Order_Schema
 from schema.order_items import Order_Items_Schema
 from datetime import datetime
 from model.order_model import OrderModel
-from db.db import Session
 from fastapi import UploadFile, File
 from io import StringIO
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
 from model.order_item_model import OrderItemModel
 from schema.order_items import Order_Items_Schema_db
 from model.product_model import Product as ProductModel
@@ -23,7 +20,7 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import status
 
 
-class Order_Service():
+class Order_Service:
     def __init__(self, db_session):
         self.db_session = db_session
 
@@ -31,30 +28,43 @@ class Order_Service():
 
         product = self.db_session.query(ProductModel).filter(ProductModel.id == product_id).first()
         order = self.db_session.query(OrderModel).filter(OrderModel.id == order_id).first()
-        if product is None or order is None:
-            return JSONResponse(content={"message": "Product or Order not found"}, status_code=404)
-        try:
-            order_item = OrderItemModel(
-                order_id=order_id,
-                product_id=product_id,
-                quantity=quantity,
-                price_per_unit=product.price,
-                total=quantity * product.price
-            )
-            self.db_session.add(order_item)
-            self.db_session.commit()
+        order_item = (self.db_session.query(OrderItemModel).filter(OrderItemModel.order_id == order_id).filter
+                      (OrderItemModel.product_id == product_id).first())
 
-        except ValueError as e:
-            print(f"An error occurred while adding product to order: {e}")
-            return JSONResponse(content={"message": "An error occurred while adding product to order"}, status_code=500)
-        try:
-            self.db_session.add(order_item)
-            self.db_session.commit()
-        except SQLAlchemyError as e:
-            print(f"An error occurred while adding product to order: {e}")
-            return JSONResponse(content={"message": "An error occurred while adding product to order"}, status_code=500)
+        if not order:
+            return JSONResponse(content={"message": "Order not found"}, status_code=404)
 
-        return JSONResponse(content={"message": "Product added to order successfully"}, status_code=201)
+        if product and order_item:
+            try:
+                order_item.quantity += quantity
+                order_item.total += product.price * quantity
+                self.db_session.commit()
+                return JSONResponse(content={"message": "Product added to order successfully"}, status_code=201)
+
+            except SQLAlchemyError as e:
+                print(f"An error occurred while adding product to order: {e}")
+                return JSONResponse(content={"message": "An error occurred while adding product to order"}, status_code=500)
+
+        if product and not order_item:
+            try:
+                order_item = OrderItemModel(
+                    order_id=order_id,
+                    product_id=product_id,
+                    quantity=quantity,
+                    price_per_unit=product.price,
+                    total=quantity * product.price
+                )
+                self.db_session.add(order_item)
+                self.db_session.commit()
+                return JSONResponse(content={"message": "Product added to order successfully"}, status_code=201)
+
+            except ValueError as e:
+                print(f"An error occurred while adding product to order: {e}")
+                return JSONResponse(content={"message": "An error occurred while adding product to order"}, status_code=500)
+            except SQLAlchemyError as e:
+                print(f"An error occurred while adding product to order: {e}")
+                return JSONResponse(content={"message": "An error occurred while adding product to order"}, status_code=500)
+
 
     def delete_order(self, order_id: int):
         with self.db_session() as db:
@@ -83,7 +93,7 @@ class Order_Service():
         # Manejo de items con producto no disponible
         order_items = [item for item in order.order_items if item.product is not None]
         if not order_items:
-            return JSONResponse(content={"message": "No valid order items found"}, status_code=404)
+            return JSONResponse(content={"message": "This order is empty"}, status_code=404)
 
         new_order_schema_out = Order_Schema_Out(
             order=Order_Schema_Total.serialize_order_db(order),
@@ -98,7 +108,7 @@ class Order_Service():
             return JSONResponse(content={"message": "Product not found in any order"}, status_code=404)
         return JSONResponse(content=[order.order_id for order in orders], status_code=200)
 
-    def process_order_csv(self, user_email: int, csv_file: UploadFile = File(...))-> JSONResponse:
+    def process_order_csv(self, user_email: int, csv_file: UploadFile = File(...)) -> JSONResponse:
         if not csv_file.filename.endswith('.csv'):
             raise HTTPException(status_code=400, detail="Invalid file type, only CSV files are accepted.")
 
@@ -188,7 +198,7 @@ class Order_Service():
         if not date:
             return JSONResponse(content={"message": "Invalid date format"}, status_code=400)
 
-        #Crear nueva orden para almacenar los order_items_model
+        # Crear nueva orden para almacenar los order_items_model
         try:
             new_order = Order_Schema(date=order["date"], user_id=user_email)
             new_order_model = OrderModel(**new_order.model_dump())
@@ -210,7 +220,7 @@ class Order_Service():
             return JSONResponse(content={"message": "An error occurred while creating the order"},
                                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        #Crear los order_items_model asociados a la orden
+        # Crear los order_items_model asociados a la orden
         for item in order.items:
             try:
                 order_item = Order_Items_Schema(order_id=id_order_created, product_id=item["CustomerNumber"],

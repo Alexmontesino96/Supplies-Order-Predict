@@ -33,7 +33,7 @@ def import_order(date: str, csv_file: UploadFile = File(...), user: Auth0User = 
         if not date:
             return JSONResponse(content={"message": "Invalid date format"}, status_code=400)
 
-        return Order_Service(Session).import_order(date, csv_file)
+        return Order_Service(Session).import_order(date, csv_file, user.email)
 
 
 @order_app.delete("/orders/delete-product-in-order", dependencies=[Depends(auth.implicit_scheme)], tags=["Order"])

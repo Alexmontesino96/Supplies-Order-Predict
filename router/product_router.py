@@ -1,7 +1,5 @@
 from fastapi.routing import APIRouter
 from fastapi import Depends, Security
-from starlette.responses import JSONResponse
-
 from db.db import Session
 from db.db import session_scope
 from model.product_model import Product as Product_Model
